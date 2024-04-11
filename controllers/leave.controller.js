@@ -49,7 +49,7 @@ const fetchLeave = async (req, res) => {
 const postLeave = async (req, res) => {
   try {
     //getting body content
-    const { days, appliedOn,reason } = req.body;
+    const { appliedOn,reason } = req.body;
 
     //getting token
     const token = getToken(req);

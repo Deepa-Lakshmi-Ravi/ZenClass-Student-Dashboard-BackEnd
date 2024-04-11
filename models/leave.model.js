@@ -9,10 +9,6 @@ const leaveSchema = mongoose.Schema({
     type: String,
     required: [true, "Date is missing"],
   },
-  days: {
-    type: String,
-    required: [true, "Days is missing"],
-  },
   status: {
     type: String,
     default: "Waiting for approval",
