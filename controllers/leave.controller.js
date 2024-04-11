@@ -49,7 +49,7 @@ const fetchLeave = async (req, res) => {
 const postLeave = async (req, res) => {
   try {
     //getting body content
-    const { appliedOn,reason } = req.body;
+    const { reason , appliedOn } = req.body;
 
     //getting token
     const token = getToken(req);
@@ -67,9 +67,8 @@ const postLeave = async (req, res) => {
 
     //prepare data to push into leave collection
     const newLeave = new leaveModel({
-      days,
-      appliedOn,
       reason,
+      appliedOn,
       student: student._id,
     });
 

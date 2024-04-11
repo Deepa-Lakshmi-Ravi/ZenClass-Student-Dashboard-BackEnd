@@ -31,6 +31,12 @@ const studentSchema = mongoose.Schema({
   experience: {
     type: String,
   },
+  noticePeriod: {
+    type: String,
+  },
+  yearofpassing: {
+    type: String,
+  },
   portfolioUrl: {
     type: String,
   },
