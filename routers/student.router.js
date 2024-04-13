@@ -9,4 +9,4 @@ studentRouter.post("/forgot-password", studentController.ForgetPassword);
 studentRouter.post("/reset-password/:randomString/:expirationTimestamp", studentController.ResetPassword);
 studentRouter.patch("/update", studentController.updateStudentProfile);
 
-module.exports = router;
+module.exports = studentRouter;
