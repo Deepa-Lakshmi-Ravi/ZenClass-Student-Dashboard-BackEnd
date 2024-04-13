@@ -179,7 +179,7 @@ const ForgetPassword = async (req, res) => {
       const expirationTimestamp = Date.now() + 2 * 60 * 1000;
 
       console.log(expirationTimestamp);
-      
+
       const resetLink = `${process.env.FRONTEND_URL}/reset-password/${randomString}/${expirationTimestamp}`;
 
       const transporter = nodemailer.createTransport({
@@ -241,7 +241,7 @@ const ResetPassword = async (req, res) => {
   try {
     const { randomString, expirationTimestamp } = req.params;
 
-    const student = await studentModel.findOne({ randomString:randomString });
+    const student = await studentModel.findOne({ randomString: randomString });
     if (!student || student.randomString !== randomString) {
       return res.status(400).send({
         message: "Invalid Random String",
@@ -266,7 +266,8 @@ const ResetPassword = async (req, res) => {
         });
       } else {
         return res.status(400).send({
-          message: "Invalid password provided",
+          message:
+            "Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
         });
       }
     }
