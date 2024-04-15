@@ -240,10 +240,10 @@ const ForgotPassword = async (req, res) => {
 const ResetPassword = async (req, res) => {
   try {
     const{password} = req.body;
-    const { resetToken } = req.params.id;
+    const { resetToken } = req.params;
 
     const student = await studentModel.findOne({ resetToken });
-    if (!student || student.resetToken === "") {
+    if (!student || student.resetToken === null) {
       return res.status(400).send({
         message: "Invalid Random String",
       });
