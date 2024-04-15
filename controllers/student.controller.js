@@ -90,7 +90,6 @@ const SignIn = async (req, res) => {
       { password: 0 }
     );
     res.status(201).json({
-      success: true,
       message: "Login successful",
       token,
       studentData,
