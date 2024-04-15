@@ -239,7 +239,6 @@ const ForgetPassword = async (req, res) => {
 
 const ResetPassword = async (req, res) => {
   try {
-    const{password} = req.body;
     const { randomString, expirationTimestamp } = req.params;
 
     const student = await studentModel.findOne({ randomString: randomString });
@@ -255,11 +254,10 @@ const ResetPassword = async (req, res) => {
           "Expiration token has expired. Please request a new reset link.",
       });
     } else {
-      if (req.body.password) {
-        const hashedPassword = await auth.hashPassword(password);
+      if (req.body.newPassword) {
+        const newPassword = await auth.hashPassword(req.body.newPassword);
 
-        student.password = hashedPassword;
-        student.confirmPassword = hashedPassword;
+        student.password = newPassword;
         student.randomString = null;
         await student.save();
 
