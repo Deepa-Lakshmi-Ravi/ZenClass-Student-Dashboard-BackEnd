@@ -7,8 +7,8 @@ const testimonialModel = require("../models/testimonial.model");
 const getToken = (req) => {
   const authorization = req.get("authorization");
 
-  if (authorization && authorization.startsWith("bearer")) {
-    return authorization.replace("bearer", "");
+  if (authorization && authorization.startsWith("bearer ")) {
+    return authorization.replace("bearer ", "");
   }
 };
 
