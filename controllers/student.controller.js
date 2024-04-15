@@ -176,13 +176,11 @@ const ForgotPassword = async (req, res) => {
         length: 10,
         charset: "alphanumeric",
       });
-      
+      const expirationTimestamp = Date.now() + 2 * 60 * 1000;
 
-      const resetLink = `${process.env.FRONTEND_URL}/reset-password/${randomString}`;
+      console.log(expirationTimestamp);
 
-      student.resetToken = randomString;
-
-     await student.findByIdAndUpdate(student.id, student);
+      const resetLink = `${process.env.FRONTEND_URL}/reset-password/${randomString}/${expirationTimestamp}`;
 
       const transporter = nodemailer.createTransport({
         service: "gmail",
@@ -191,8 +189,7 @@ const ForgotPassword = async (req, res) => {
           pass: process.env.EMAIL_PASSWORD,
         },
       });
-      const sendMail = async()=>{
-        const info = await transporter.sendMail({
+      const mailOptions = {
         from: process.env.EMAIL_ID,
         to: student.email,
         subject: "Password Reset",
@@ -201,20 +198,31 @@ const ForgotPassword = async (req, res) => {
         <p>Click on the below link to reset your password</p>
         <a href="${resetLink}" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; cursor:pointer;">Set Your New Password</a>
         `,
-        })
       };
-      sendMail()
-      .then(()=>{
-        return res
-          .status(201)
-          .json({ message: "Reset mail has been sent successfully" });
-      })
-      .catch(()=>{
-        return res
-      .status(400)
-      .json({ message: "Error on updating please try again later" });
-      })
 
+      transporter.sendMail(mailOptions, async (error, info) => {
+        if (error) {
+          console.log(error);
+          res.status(500).send({
+            message: "Failed to send the password reset mail",
+          });
+        } else {
+          console.log("Password reset mail sent", +info.response);
+          try {
+            student.randomString = randomString;
+            await student.save();
+            res.status(201).send({
+              message:
+                "Password reset mail sent successfully.Random string updated in the database.",
+            });
+          } catch (err) {
+            console.error(err);
+            res.status(500).json({
+              message: "Failed update random string in the database",
+            });
+          }
+        }
+      });
     } else {
       res.status(404).json({
         success: false,
@@ -231,26 +239,38 @@ const ForgotPassword = async (req, res) => {
 
 const ResetPassword = async (req, res) => {
   try {
-    const{password} = req.body;
-    const { resetToken } = req.params;
+    const { randomString, expirationTimestamp } = req.params;
 
-    const student = await studentModel.findOne({ resetToken });
-    if (!student || student.resetToken === null) {
+    const student = await studentModel.findOne({ randomString: randomString });
+    if (!student || student.randomString !== randomString) {
       return res.status(400).send({
         message: "Invalid Random String",
       });
     }
 
-        const hashedPassword = await auth.hashPassword(password);
+    if (expirationTimestamp && expirationTimestamp < Date.now()) {
+      return res.status(400).send({
+        message:
+          "Expiration token has expired. Please request a new reset link.",
+      });
+    } else {
+      if (req.body.newPassword) {
+        const newPassword = await auth.hashPassword(req.body.newPassword);
 
-        student.password = hashedPassword;
-        student.resetToken = null;
+        student.password = newPassword;
+        student.randomString = null;
         await student.save();
 
-        return res.status(201).send({
+        return res.status(200).send({
           message: "Your new password has been updated successfully",
         });
-       
+      } else {
+        return res.status(400).send({
+          message:
+            "Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
+        });
+      }
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).send({

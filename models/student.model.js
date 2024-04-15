@@ -46,7 +46,7 @@ const studentSchema = mongoose.Schema({
   resumeUrl: {
     type: String,
   },
-  resetToken: {
+  randomString: {
     type: String,
   },
   isMentor: {
