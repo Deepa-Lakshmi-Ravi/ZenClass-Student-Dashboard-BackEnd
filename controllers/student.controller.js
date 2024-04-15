@@ -168,7 +168,7 @@ const updateStudentProfile = async (req, res) => {
   }
 };
 
-const ForgetPassword = async (req, res) => {
+const ForgotPassword = async (req, res) => {
   try {
     const student = await studentModel.findOne({ email: req.body.email });
     if (student) {
@@ -176,11 +176,9 @@ const ForgetPassword = async (req, res) => {
         length: 10,
         charset: "alphanumeric",
       });
-      const expirationTimestamp = Date.now() + 2 * 60 * 1000;
+      
 
-      console.log(expirationTimestamp);
-
-      const resetLink = `${process.env.FRONTEND_URL}/reset-password/${randomString}/${expirationTimestamp}`;
+      const resetLink = `${process.env.FRONTEND_URL}/reset-password/${randomString}`;
 
       const transporter = nodemailer.createTransport({
         service: "gmail",
@@ -209,7 +207,7 @@ const ForgetPassword = async (req, res) => {
         } else {
           console.log("Password reset mail sent", +info.response);
           try {
-            student.randomString = randomString;
+            student.resetToken = randomString;
             await student.save();
             res.status(201).send({
               message:
@@ -239,38 +237,26 @@ const ForgetPassword = async (req, res) => {
 
 const ResetPassword = async (req, res) => {
   try {
-    const { randomString, expirationTimestamp } = req.params;
+    const{password} = req.body;
+    const { resetToken } = req.params.id;
 
-    const student = await studentModel.findOne({ randomString: randomString });
-    if (!student || student.randomString !== randomString) {
+    const student = await studentModel.findOne({ resetToken });
+    if (!student || student.resetToken === "") {
       return res.status(400).send({
         message: "Invalid Random String",
       });
     }
 
-    if (expirationTimestamp && expirationTimestamp < Date.now()) {
-      return res.status(400).send({
-        message:
-          "Expiration token has expired. Please request a new reset link.",
-      });
-    } else {
-      if (req.body.newPassword) {
-        const newPassword = await auth.hashPassword(req.body.newPassword);
+        const hashedPassword = await auth.hashPassword(password);
 
-        student.password = newPassword;
-        student.randomString = null;
+        student.password = hashedPassword;
+        student.resetToken = null;
         await student.save();
 
-        return res.status(200).send({
+        return res.status(201).send({
           message: "Your new password has been updated successfully",
         });
-      } else {
-        return res.status(400).send({
-          message:
-            "Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
-        });
-      }
-    }
+       
   } catch (error) {
     console.log(error);
     return res.status(500).send({
@@ -283,6 +269,6 @@ module.exports = {
   SignUp,
   SignIn,
   updateStudentProfile,
-  ForgetPassword,
+  ForgotPassword,
   ResetPassword,
 };
