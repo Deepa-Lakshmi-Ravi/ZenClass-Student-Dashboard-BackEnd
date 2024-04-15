@@ -259,6 +259,7 @@ const ResetPassword = async (req, res) => {
         const hashedPassword = await auth.hashPassword(password);
 
         student.password = hashedPassword;
+        student.confirmPassword = hashedPassword;
         student.randomString = null;
         await student.save();
 
