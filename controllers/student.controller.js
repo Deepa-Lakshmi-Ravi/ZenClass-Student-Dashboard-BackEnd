@@ -191,7 +191,8 @@ const ForgotPassword = async (req, res) => {
           pass: process.env.EMAIL_PASSWORD,
         },
       });
-      const mailOptions = {
+      const sendMail = async()=>{
+        const info = await transporter.sendMail({
         from: process.env.EMAIL_ID,
         to: student.email,
         subject: "Password Reset",
@@ -200,29 +201,20 @@ const ForgotPassword = async (req, res) => {
         <p>Click on the below link to reset your password</p>
         <a href="${resetLink}" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; cursor:pointer;">Set Your New Password</a>
         `,
+        })
       };
+      sendMail()
+      .then(()=>{
+        return res
+          .status(201)
+          .json({ message: "Reset mail has been sent successfully" });
+      })
+      .catch(()=>{
+        return res
+      .status(400)
+      .json({ message: "Error on updating please try again later" });
+      })
 
-      transporter.sendMail(mailOptions, async (error, info) => {
-        if (error) {
-          console.log(error);
-          res.status(500).send({
-            message: "Failed to send the password reset mail",
-          });
-        } else {
-          console.log("Password reset mail sent", +info.response);
-          try {
-            res.status(201).json({
-              message:
-                "Password reset mail sent successfully.Random string updated in the database.",
-            });
-          } catch (err) {
-            console.error(err);
-            res.status(500).json({
-              message: "Failed update random string in the database",
-            });
-          }
-        }
-      });
     } else {
       res.status(404).json({
         success: false,
