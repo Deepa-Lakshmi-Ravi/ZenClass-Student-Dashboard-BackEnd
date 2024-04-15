@@ -180,6 +180,10 @@ const ForgotPassword = async (req, res) => {
 
       const resetLink = `${process.env.FRONTEND_URL}/reset-password/${randomString}`;
 
+      student.resetToken = randomString;
+
+     await student.findByIdAndUpdate(student.id, student);
+
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -207,9 +211,7 @@ const ForgotPassword = async (req, res) => {
         } else {
           console.log("Password reset mail sent", +info.response);
           try {
-            student.resetToken = randomString;
-            await student.save();
-            res.status(201).send({
+            res.status(201).json({
               message:
                 "Password reset mail sent successfully.Random string updated in the database.",
             });
